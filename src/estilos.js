@@ -1,4 +1,5 @@
-import { StyleSheet, Platform } from "react-native";
+import { useState } from "react";
+import { StyleSheet, Platform, View, Text, Image, Pressable } from "react-native";
 
 export const cor = {
   fundo: "#0d0b09", painel: "#1b1612", marrom: "#2e241b", ouro: "#a98a45",
@@ -10,7 +11,7 @@ export const serif = Platform.select({ ios: "Georgia", android: "serif", default
 
 export const s = StyleSheet.create({
   tela: { flex: 1, backgroundColor: cor.fundo },
-  cabecalho: { backgroundColor: "#090705", paddingTop: 48, paddingBottom: 12, paddingHorizontal: 16, borderBottomWidth: 3, borderColor: cor.ouro },
+  cabecalho: { backgroundColor: "#090705", paddingTop: 12, paddingBottom: 12, paddingHorizontal: 16, borderBottomWidth: 3, borderColor: cor.ouro },
   logo: { fontFamily: serif, fontSize: 28, letterSpacing: 8, color: cor.ouroClaro, fontWeight: "bold" },
   subtitulo: { fontFamily: serif, fontStyle: "italic", color: cor.texto, fontSize: 13 },
   abas: { flexDirection: "row", backgroundColor: "#090705", borderTopWidth: 1, borderColor: cor.ouro },
@@ -46,7 +47,7 @@ export const s = StyleSheet.create({
 
   card: { backgroundColor: cor.painel, borderWidth: 1, borderColor: cor.ouro, marginBottom: 16 },
   foto: { width: "100%", height: 220, backgroundColor: "#000", justifyContent: "center", alignItems: "center" },
-  fotoTom: { ...StyleSheet.absoluteFillObject, backgroundColor: "rgba(90,60,20,0.35)" },
+  fotoTom: { position: "absolute", top: 0, left: 0, right: 0, bottom: 0, backgroundColor: "rgba(90,60,20,0.35)" },
   fotoVazia: { fontSize: 56, color: cor.ouro, fontFamily: serif },
   cardCorpo: { padding: 12 },
   cardNome: { fontFamily: serif, fontSize: 18, color: cor.ouroClaro, fontWeight: "bold", marginBottom: 4 },
@@ -71,3 +72,37 @@ export const s = StyleSheet.create({
   fundoModal: { flex: 1, backgroundColor: "rgba(0,0,0,0.75)", justifyContent: "center", padding: 24 },
   modal: { backgroundColor: cor.painel, borderWidth: 1, borderColor: cor.ouro, padding: 16 },
 });
+
+// ---------- Componentes visuais compartilhados ----------
+
+// Botões de escolha (filtros e formulários). opcoes = [[valor, texto], ...]
+export function Chips({ opcoes, valor, onChange }) {
+  return (
+    <View style={s.chips}>
+      {opcoes.map(([v, rotulo]) => {
+        const ativo = valor === v;
+        return (
+          <Pressable key={String(v)} style={[s.chip, ativo && s.chipAtivo]} onPress={() => onChange(v)}>
+            <Text style={[s.chipTexto, ativo && s.chipTextoAtivo]}>{rotulo}</Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+// Foto do personagem. Ordem: foto local > imagem da API > inicial do nome.
+export function Foto({ uri, local, nome, estilo, comTom, corLetra }) {
+  const [falhou, setFalhou] = useState(false);
+  const fonte = local || (uri && !falhou ? { uri } : null);
+  return (
+    <View style={estilo}>
+      {fonte ? (
+        <Image source={fonte} style={{ width: "100%", height: "100%" }} resizeMode="cover" onError={() => setFalhou(true)} />
+      ) : (
+        <Text style={[s.fotoVazia, corLetra && { color: corLetra }]}>{(nome || "?").charAt(0).toUpperCase()}</Text>
+      )}
+      {comTom && <View style={s.fotoTom} pointerEvents="none" />}
+    </View>
+  );
+}
